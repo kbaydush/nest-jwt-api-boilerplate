@@ -2,82 +2,125 @@ import {
     Body,
     Controller,
     Get,
-    HttpCode,
-    HttpStatus,
     Post,
-    UploadedFile,
+    Req,
+    UnauthorizedException,
     UseGuards,
-    UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import {
-    ApiBearerAuth,
-    ApiConsumes,
-    ApiOkResponse,
-    ApiTags,
-} from '@nestjs/swagger';
 
-import { AuthUser } from '../../decorators/auth-user.decorator';
-import { ApiFile } from '../../decorators/swagger.schema';
-import { AuthGuard } from '../../guards/auth.guard';
-import { AuthUserInterceptor } from '../../interceptors/auth-user-interceptor.service';
-import { IFile } from '../../interfaces/IFile';
+// @ts-ignore
+import { JWTGuard } from '../../guards/jwt.guard';
 import { UserDto } from '../user/dto/UserDto';
-import { UserEntity } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
-import { LoginPayloadDto } from './dto/LoginPayloadDto';
-import { UserLoginDto } from './dto/UserLoginDto';
-import { UserRegisterDto } from './dto/UserRegisterDto';
+import { LoginRequest, RefreshRequest, RegisterRequest } from './requests';
 
-@Controller('auth')
-@ApiTags('auth')
+export interface AuthenticationPayload {
+    user: UserDto;
+    payload: {
+        type: string;
+        token: string;
+        refresh_token?: string;
+    };
+}
+
+@Controller('/api/auth')
 export class AuthController {
-    constructor(
-        public readonly userService: UserService,
-        public readonly authService: AuthService,
-    ) {}
+    private readonly users: UserService;
+    private readonly tokens: AuthService;
 
-    @Post('login')
-    @HttpCode(HttpStatus.OK)
-    @ApiOkResponse({
-        type: LoginPayloadDto,
-        description: 'User info with access token',
-    })
-    async userLogin(
-        @Body() userLoginDto: UserLoginDto,
-    ): Promise<LoginPayloadDto> {
-        const userEntity = await this.authService.validateUser(userLoginDto);
-
-        const token = await this.authService.createToken(userEntity);
-        return new LoginPayloadDto(userEntity.toDto(), token);
+    public constructor(users: UserService, tokens: AuthService) {
+        this.users = users;
+        this.tokens = tokens;
     }
 
-    @Post('register')
-    @HttpCode(HttpStatus.OK)
-    @ApiOkResponse({ type: UserDto, description: 'Successfully Registered' })
-    @ApiConsumes('multipart/form-data')
-    @ApiFile('avatar')
-    @UseInterceptors(FileInterceptor('avatar'))
-    async userRegister(
-        @Body() userRegisterDto: UserRegisterDto,
-        @UploadedFile() file: IFile,
-    ): Promise<UserDto> {
-        const createdUser = await this.userService.createUser(
-            userRegisterDto,
-            file,
+    @Post('/register')
+    public async register(@Body() body: RegisterRequest) {
+        const user = await this.users.createUserFromRequest(body);
+
+        const token = await this.tokens.generateAccessToken(user);
+        const refresh = await this.tokens.generateRefreshToken(
+            user,
+            60 * 60 * 24 * 30,
         );
 
-        return createdUser.toDto();
+        const payload = this.buildResponsePayload(user, token, refresh);
+
+        return {
+            status: 'success',
+            data: payload,
+        };
     }
 
-    @Get('me')
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(AuthGuard)
-    @UseInterceptors(AuthUserInterceptor)
-    @ApiBearerAuth()
-    @ApiOkResponse({ type: UserDto, description: 'current user info' })
-    getCurrentUser(@AuthUser() user: UserEntity) {
-        return user.toDto();
+    @Post('/login')
+    public async login(@Body() body: LoginRequest) {
+        const { username, password } = body;
+
+        const user = await this.users.findForUsername(username);
+        const valid = user
+            ? await this.users.validateCredentials(user, password)
+            : false;
+
+        if (!valid) {
+            throw new UnauthorizedException('The login is invalid');
+        }
+
+        const token = await this.tokens.generateAccessToken(user);
+        const refresh = await this.tokens.generateRefreshToken(
+            user,
+            60 * 60 * 24 * 30,
+        );
+
+        const payload = this.buildResponsePayload(user, token, refresh);
+
+        return {
+            status: 'success',
+            data: payload,
+        };
+    }
+
+    @Post('/refresh')
+    public async refresh(@Body() body: RefreshRequest) {
+        const {
+            user,
+            token,
+        } = await this.tokens.createAccessTokenFromRefreshToken(
+            body.refresh_token,
+        );
+
+        const payload = this.buildResponsePayload(user, token);
+
+        return {
+            status: 'success',
+            data: payload,
+        };
+    }
+
+    @Get('/me')
+    @UseGuards(JWTGuard)
+    public async getUser(@Req() request) {
+        const userId = request.user.id;
+
+        const user = await this.users.findForId(userId);
+
+        return {
+            status: 'success',
+            data: user,
+        };
+    }
+
+    private buildResponsePayload(
+        user: UserDto,
+        accessToken: string,
+        refreshToken?: string,
+    ): AuthenticationPayload {
+        return {
+            user,
+            payload: {
+                type: 'bearer',
+                token: accessToken,
+                ...(refreshToken ? { refresh_token: refreshToken } : {}),
+            },
+        };
     }
 }
