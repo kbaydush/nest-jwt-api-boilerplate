@@ -6,7 +6,7 @@ import { UserEntity } from './user.entity';
 
 @EntityRepository(UserEntity)
 export class UserRepository extends Repository<UserEntity> {
-    public async findForId(id: number): Promise<UserEntity | null> {
+    public async findForId(id: number): Promise<UserEntity | undefined> {
         return this.findOne({
             where: {
                 id,
@@ -14,7 +14,7 @@ export class UserRepository extends Repository<UserEntity> {
         });
     }
 
-    public async findForUsername(username: string): Promise<UserEntity | null> {
+    public async findForUsername(username: string): Promise<UserEntity | undefined> {
         return this.findOne({
             where: {
                 username: where(fn('lower', col('username')), username),

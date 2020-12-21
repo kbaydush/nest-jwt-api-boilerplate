@@ -1,9 +1,7 @@
 {
     "compilerOptions": {
-        "lib": ["es5", "es6", "es2017", "es2019", "dom"],
         "module": "commonjs",
         "declaration": false,
-        "moduleResolution": "node",
         "noImplicitAny": false,
         "removeComments": true,
         "noLib": false,
@@ -11,16 +9,16 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "target": "es6",
-        "sourceMap": true,
         "allowJs": true,
         "outDir": "./dist",
-        "baseUrl": "./src"
+        "baseUrl": "."
     },
     "include": [
         "src/**/*"
     ],
     "exclude": [
         "node_modules",
-        "**/*.spec.ts"
+        "**/*.spec.ts",
+        "dist"
     ]
 }

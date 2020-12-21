@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 
 // @ts-ignore
-import { JWTGuard } from '../../guards/jwt.guard';
+import {JWTGuard} from '../../guards/auth.guard';
 import { UserDto } from '../user/dto/UserDto';
 import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
@@ -24,7 +24,7 @@ export interface AuthenticationPayload {
     };
 }
 
-@Controller('/api/auth')
+@Controller('/auth')
 export class AuthController {
     private readonly users: UserService;
     private readonly tokens: AuthService;

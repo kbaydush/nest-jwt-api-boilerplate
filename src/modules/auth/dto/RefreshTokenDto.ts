@@ -3,14 +3,22 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 import { AbstractDto } from '../../../common/dto/AbstractDto';
+import {AuthEntity} from "../auth.entity";
 
 export class AuthDto extends AbstractDto {
     @ApiProperty()
-    user_id: number;
+    userId: string;
 
     @ApiProperty()
-    is_revoked: boolean;
+    isRevoked: boolean;
 
     @ApiProperty()
     expires: Date;
+
+    constructor(auth: AuthEntity) {
+        super(auth);
+        this.userId = auth.userId;
+        this.isRevoked = auth.isRevoked;
+        this.expires = auth.expires;
+    }
 }

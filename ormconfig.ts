@@ -7,7 +7,7 @@ import { SnakeNamingStrategy } from './src/snake-naming.strategy';
 if (!(<any>module).hot /* for webpack HMR */) {
     process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 }
-
+    ``
 dotenv.config({
     path: `.${process.env.NODE_ENV}.env`,
 });

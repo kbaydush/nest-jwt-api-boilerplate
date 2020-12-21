@@ -34,6 +34,7 @@ export class UserDto extends AbstractDto {
         this.lastName = user.lastName;
         this.role = user.role;
         this.email = user.email;
+        this.username = user.username;
         this.password = user.password;
         this.phone = user.phone;
     }

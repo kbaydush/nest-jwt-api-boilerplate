@@ -1,5 +1,15 @@
-import { AuthGuard as NestAuthGuard } from '@nestjs/passport';
+import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { AuthGuard } from '@nestjs/passport'
 
-// This should be used as guard class
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export const AuthGuard = NestAuthGuard('jwt');
+@Injectable()
+export class JWTGuard extends AuthGuard('jwt') {
+
+    handleRequest (err, user, info: Error) {
+        if (err || info || !user) {
+            throw err || info || new UnauthorizedException()
+        }
+
+        return user
+    }
+
+}

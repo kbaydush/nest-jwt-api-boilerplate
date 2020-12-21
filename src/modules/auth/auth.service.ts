@@ -12,8 +12,8 @@ import { AuthEntity } from './auth.entity';
 import { AuthRepository } from './auth.repository';
 
 const BASE_OPTIONS: SignOptions = {
-    issuer: 'https://my-app.com',
-    audience: 'https://my-app.com',
+    issuer: 'http://localhost',
+    audience: 'http://localhost',
 };
 
 export interface RefreshTokenPayload {
@@ -72,7 +72,7 @@ export class AuthService {
             throw new UnprocessableEntityException('Refresh token not found');
         }
 
-        if (token.is_revoked) {
+        if (token.isRevoked) {
             throw new UnprocessableEntityException('Refresh token revoked');
         }
 
@@ -110,7 +110,7 @@ export class AuthService {
 
     private async getUserFromRefreshTokenPayload(
         payload: RefreshTokenPayload,
-    ): Promise<UserEntity> {
+    ): Promise<UserEntity | null> {
         const subId = payload.sub;
 
         if (!subId) {

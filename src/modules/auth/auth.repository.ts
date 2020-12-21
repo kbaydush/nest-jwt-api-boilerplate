@@ -11,8 +11,8 @@ export class AuthRepository extends Repository<AuthEntity> {
     ): Promise<AuthEntity> {
         const token = new AuthEntity();
 
-        token.user_id = user.id;
-        token.is_revoked = false;
+        token.userId = user.id;
+        token.isRevoked = false;
 
         const expiration = new Date();
         expiration.setTime(expiration.getTime() + ttl);
