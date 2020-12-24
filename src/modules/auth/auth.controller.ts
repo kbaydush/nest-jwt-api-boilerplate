@@ -8,12 +8,11 @@ import {
     UseGuards, UsePipes,
 } from '@nestjs/common';
 
-// @ts-ignore
 import { JWTGuard } from '../../guards/auth.guard';
 import { UserDto } from '../user/dto/UserDto';
 import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
-import { ApiOkResponse } from "@nestjs/swagger";
+import { ApiCreatedResponse, ApiOkResponse, ApiResponse } from "@nestjs/swagger";
 import { AuthPayloadDto, IAuthPayload } from "./dto/LoginPayloadDto";
 import { LoginRequestDto, RefreshRequestDto, RegisterRequestDto } from "./dto/RequestDto";
 import { ValidationPipe } from "../../common/validation.pipe";
@@ -73,6 +72,11 @@ export class AuthController {
         type: AuthPayloadDto,
         description: 'User info with access token',
     })
+    @ApiCreatedResponse({
+        description: 'The record has been successfully created.',
+        type: AuthPayloadDto,
+    })
+    @ApiResponse({ status: 403, description: 'Forbidden.'})
     @UsePipes(new ValidationPipe())
     public async register(@Body() body: RegisterRequestDto): Promise<AuthPayloadDto> {
         const user = await this.users.createUserFromRequest(body);
