@@ -4,11 +4,18 @@
         "declaration": false,
         "noImplicitAny": false,
         "removeComments": true,
+        "strict": true,
+        "strictPropertyInitialization": false,
         "noLib": false,
         "allowSyntheticDefaultImports": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "target": "es6",
+        "target": "ES2017",
+        "lib": [
+            "es5",
+            "es6"
+        ],
+        "strictFunctionTypes": false,
         "allowJs": true,
         "outDir": "./dist",
         "baseUrl": "."

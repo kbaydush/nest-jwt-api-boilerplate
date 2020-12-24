@@ -36,6 +36,8 @@ Array.prototype.toDtos = function <B extends AbstractDto>(options?: any): B[] {
 };
 
 QueryBuilder.prototype.searchByString = function (q, columnNames) {
+    // @ts-ignore
+    // TODO: TS2339
     this.andWhere(
         new Brackets((qb) => {
             for (const item of columnNames) {

@@ -9,15 +9,20 @@ import { UserRepository } from '../user/user.repository';
 import { AuthController } from './auth.controller';
 import { AuthRepository } from './auth.repository';
 import { AuthService } from './auth.service';
+import { ConfigService } from "../../shared/services/config.service";
 
 @Module({
     imports: [
         forwardRef(() => UserModule),
-        JwtModule.register({
-            secret: '<SECRET KEY>',
-            signOptions: {
-                expiresIn: '30m',
-            },
+        JwtModule.registerAsync({
+            imports: [AuthModule],
+            useFactory: (configService: ConfigService) => ({
+                secret: configService.get('JWT_SECRET_KEY'),
+                signOptions: {
+                    expiresIn: '30m',
+                },
+            }),
+            inject: [ConfigService],
         }),
         TypeOrmModule.forFeature([AuthRepository]),
         TypeOrmModule.forFeature([UserRepository]),

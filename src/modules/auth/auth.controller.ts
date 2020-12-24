@@ -1,28 +1,22 @@
 import {
     Body,
     Controller,
-    Get,
+    Get, HttpCode, HttpStatus,
     Post,
     Req,
     UnauthorizedException,
-    UseGuards,
+    UseGuards, UsePipes,
 } from '@nestjs/common';
 
 // @ts-ignore
-import {JWTGuard} from '../../guards/auth.guard';
+import { JWTGuard } from '../../guards/auth.guard';
 import { UserDto } from '../user/dto/UserDto';
 import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
-import { LoginRequest, RefreshRequest, RegisterRequest } from './requests';
-
-export interface AuthenticationPayload {
-    user: UserDto;
-    payload: {
-        type: string;
-        token: string;
-        refresh_token?: string;
-    };
-}
+import { ApiOkResponse } from "@nestjs/swagger";
+import { AuthPayloadDto, IAuthPayload } from "./dto/LoginPayloadDto";
+import { LoginRequestDto, RefreshRequestDto, RegisterRequestDto } from "./dto/RequestDto";
+import { ValidationPipe } from "../../common/validation.pipe";
 
 @Controller('/auth')
 export class AuthController {
@@ -34,29 +28,23 @@ export class AuthController {
         this.tokens = tokens;
     }
 
-    @Post('/register')
-    public async register(@Body() body: RegisterRequest) {
-        const user = await this.users.createUserFromRequest(body);
-
-        const token = await this.tokens.generateAccessToken(user);
-        const refresh = await this.tokens.generateRefreshToken(
-            user,
-            60 * 60 * 24 * 30,
-        );
-
-        const payload = this.buildResponsePayload(user, token, refresh);
-
-        return {
-            status: 'success',
-            data: payload,
-        };
-    }
 
     @Post('/login')
-    public async login(@Body() body: LoginRequest) {
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse({
+        type: AuthPayloadDto,
+        description: 'User info with access token',
+    })
+    @UsePipes(new ValidationPipe())
+    public async login(@Body() body: LoginRequestDto): Promise<AuthPayloadDto> {
         const { username, password } = body;
 
         const user = await this.users.findForUsername(username);
+
+        if (!user) {
+            throw new UnauthorizedException('User does not exist');
+        }
+
         const valid = user
             ? await this.users.validateCredentials(user, password)
             : false;
@@ -71,16 +59,40 @@ export class AuthController {
             60 * 60 * 24 * 30,
         );
 
+        const payload: IAuthPayload = this.buildResponsePayload(user, token, refresh);
+
+        return {
+            status: 'success',
+            data: payload,
+        } as AuthPayloadDto;
+    }
+
+    @Post('/register')
+    @HttpCode(HttpStatus.OK)
+    @ApiOkResponse({
+        type: AuthPayloadDto,
+        description: 'User info with access token',
+    })
+    @UsePipes(new ValidationPipe())
+    public async register(@Body() body: RegisterRequestDto): Promise<AuthPayloadDto> {
+        const user = await this.users.createUserFromRequest(body);
+
+        const token = await this.tokens.generateAccessToken(user);
+        const refresh = await this.tokens.generateRefreshToken(
+            user,
+            60 * 60 * 24 * 30,
+        );
+
         const payload = this.buildResponsePayload(user, token, refresh);
 
         return {
             status: 'success',
             data: payload,
-        };
+        } as AuthPayloadDto;
     }
 
     @Post('/refresh')
-    public async refresh(@Body() body: RefreshRequest) {
+    public async refresh(@Body() body: RefreshRequestDto): Promise<AuthPayloadDto> {
         const {
             user,
             token,
@@ -93,7 +105,7 @@ export class AuthController {
         return {
             status: 'success',
             data: payload,
-        };
+        } as AuthPayloadDto;
     }
 
     @Get('/me')
@@ -113,13 +125,13 @@ export class AuthController {
         user: UserDto,
         accessToken: string,
         refreshToken?: string,
-    ): AuthenticationPayload {
+    ): IAuthPayload {
         return {
             user,
             payload: {
                 type: 'bearer',
                 token: accessToken,
-                ...(refreshToken ? { refresh_token: refreshToken } : {}),
+                ...(refreshToken ? {refresh_token: refreshToken} : {}),
             },
         };
     }

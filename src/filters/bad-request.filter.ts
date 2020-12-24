@@ -36,10 +36,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
     private _validationFilter(validationErrors: ValidationError[]) {
         for (const validationError of validationErrors) {
             for (const [constraintKey, constraint] of Object.entries(
+                // @ts-ignore
                 validationError.constraints,
             )) {
                 if (!constraint) {
                     // convert error message to error.fields.{key} syntax for i18n translation
+                    // @ts-ignore
                     validationError.constraints[constraintKey] =
                         'error.fields.' + _.snakeCase(constraintKey);
                 }

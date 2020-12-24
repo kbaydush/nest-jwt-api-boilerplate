@@ -14,6 +14,7 @@ export class ConfigService {
 
         // Replace \\n with \n to support multiline strings in AWS
         for (const envName of Object.keys(process.env)) {
+            // @ts-ignore
             process.env[envName] = process.env[envName].replace(/\\n/g, '\n');
         }
     }
@@ -27,7 +28,7 @@ export class ConfigService {
     }
 
     public get(key: string): string {
-        return process.env[key];
+        return process.env[key] as string;
     }
 
     public getNumber(key: string): number {

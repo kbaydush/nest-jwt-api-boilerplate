@@ -1,25 +1,24 @@
 import { hash } from 'bcrypt';
-import { col, fn, where } from 'sequelize';
 import { EntityRepository, Repository } from 'typeorm';
 
 import { UserEntity } from './user.entity';
 
 @EntityRepository(UserEntity)
 export class UserRepository extends Repository<UserEntity> {
-    public async findForId(id: number): Promise<UserEntity | undefined> {
+    public findForId(id: number): Promise<UserEntity | null> {
         return this.findOne({
             where: {
                 id,
             },
-        });
+        }) as Promise<UserEntity>;
     }
 
-    public async findForUsername(username: string): Promise<UserEntity | undefined> {
+    public async findForUsername(username: string): Promise<UserEntity | null> {
         return this.findOne({
             where: {
-                username: where(fn('lower', col('username')), username),
+                username: username
             },
-        });
+        }) as Promise<UserEntity>;
     }
 
     public async createOne(

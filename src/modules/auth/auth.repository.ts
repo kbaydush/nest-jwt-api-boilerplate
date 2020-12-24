@@ -27,6 +27,6 @@ export class AuthRepository extends Repository<AuthEntity> {
             where: {
                 id,
             },
-        });
+        }) as Promise<AuthEntity>;
     }
 }

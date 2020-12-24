@@ -4,6 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { UserDto } from '../modules/user/dto/UserDto';
 import { UserService } from '../modules/user/user.service';
+import { ConfigService } from "../shared/services/config.service";
 
 export interface AccessTokenPayload {
     sub: number;
@@ -13,12 +14,12 @@ export interface AccessTokenPayload {
 export class JwtStrategy extends PassportStrategy(Strategy) {
     private users: UserService;
 
-    public constructor(users: UserService) {
+    public constructor(users: UserService, public readonly configService: ConfigService,) {
 
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: '<SECRET KEY>',
+            secretOrKey: configService.get('JWT_SECRET_KEY'),
             signOptions: {
                 expiresIn: '30m',
             },
