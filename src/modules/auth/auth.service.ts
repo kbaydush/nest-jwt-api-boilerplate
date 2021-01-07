@@ -12,8 +12,8 @@ import { AuthEntity } from './auth.entity';
 import { AuthRepository } from './auth.repository';
 
 const BASE_OPTIONS: SignOptions = {
-    issuer: 'http://localhost',
-    audience: 'http://localhost',
+    issuer: 'https://localhost',
+    audience: 'https://localhost',
 };
 
 export interface RefreshTokenPayload {
