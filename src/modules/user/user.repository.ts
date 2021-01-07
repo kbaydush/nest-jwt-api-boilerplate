@@ -28,7 +28,7 @@ export class UserRepository extends Repository<UserEntity> {
         const user = new UserEntity();
 
         user.username = username;
-        user.password = await hash(password, 10);
+        user.password = password;
 
         return this.save(user);
     }

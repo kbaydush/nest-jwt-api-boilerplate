@@ -14,12 +14,14 @@ dotenv.config({
 
 // Replace \\n with \n to support multiline strings in AWS
 for (const envName of Object.keys(process.env)) {
+    // @ts-ignore
     process.env[envName] = process.env[envName].replace(/\\n/g, '\n');
 }
 
 module.exports = {
     type: 'postgres',
     host: process.env.DB_HOST,
+    // @ts-ignore
     port: +process.env.DB_PORT,
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,

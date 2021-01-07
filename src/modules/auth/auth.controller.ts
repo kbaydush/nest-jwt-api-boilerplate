@@ -1,7 +1,8 @@
 import {
+    BadRequestException,
     Body,
     Controller,
-    Get, HttpCode, HttpStatus,
+    Get, HttpCode, HttpStatus, Ip,
     Post,
     Req,
     UnauthorizedException,
@@ -12,10 +13,12 @@ import { JWTGuard } from '../../guards/auth.guard';
 import { UserDto } from '../user/dto/UserDto';
 import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
-import { ApiCreatedResponse, ApiOkResponse, ApiResponse } from "@nestjs/swagger";
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { AuthPayloadDto, IAuthPayload } from "./dto/LoginPayloadDto";
 import { LoginRequestDto, RefreshRequestDto, RegisterRequestDto } from "./dto/RequestDto";
 import { ValidationPipe } from "../../common/validation.pipe";
+import { GetOperationId } from "../../shared/utils/get-operation-id";
+import { UtilsService } from "../../providers/utils.service";
 
 @Controller('/auth')
 export class AuthController {
@@ -34,8 +37,14 @@ export class AuthController {
         type: AuthPayloadDto,
         description: 'User info with access token',
     })
+    @ApiResponse({status: HttpStatus.OK, type: AuthPayloadDto})
+    @ApiResponse({status: HttpStatus.UNAUTHORIZED, type: UnauthorizedException})
+    @ApiResponse({status: HttpStatus.BAD_REQUEST, type: BadRequestException})
+    @ApiOperation(GetOperationId('Users', 'Login'))
     @UsePipes(new ValidationPipe())
-    public async login(@Body() body: LoginRequestDto): Promise<AuthPayloadDto> {
+    public async login(@Req() req,
+                       @Ip() userIp,
+                       @Body() body: LoginRequestDto): Promise<AuthPayloadDto> {
         const { username, password } = body;
 
         const user = await this.users.findForUsername(username);
@@ -44,9 +53,7 @@ export class AuthController {
             throw new UnauthorizedException('User does not exist');
         }
 
-        const valid = user
-            ? await this.users.validateCredentials(user, password)
-            : false;
+        const valid = await UtilsService.validateHash(password, user && user.password);
 
         if (!valid) {
             throw new UnauthorizedException('The login is invalid');

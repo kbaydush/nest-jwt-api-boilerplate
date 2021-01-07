@@ -4,6 +4,7 @@ import { AbstractEntity } from '../../common/abstract.entity';
 import { RoleType } from '../../common/constants/role-type';
 import { UserDto } from './dto/UserDto';
 import { PasswordTransformer } from './password.transformer';
+import { AuthEntity } from "../auth/auth.entity";
 
 @Entity({ name: 'users' })
 export class UserEntity extends AbstractEntity<UserDto> {
@@ -28,8 +29,8 @@ export class UserEntity extends AbstractEntity<UserDto> {
     @Column({ nullable: true, length: 255 })
     phone: string;
 
-    // @OneToMany(type => AuthEntity, token => token.user)
-    // tokens: AuthEntity;
+    @OneToMany(type => AuthEntity, token => token.user)
+    tokens: AuthEntity;
 
     dtoClass = UserDto;
 }

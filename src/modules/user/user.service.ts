@@ -21,7 +21,7 @@ export class UserService {
         user: UserDto,
         password: string,
     ): Promise<boolean> {
-        return compare(password, user.password);
+        return await compare(password, user.password);
     }
 
     public async createUserFromRequest(
