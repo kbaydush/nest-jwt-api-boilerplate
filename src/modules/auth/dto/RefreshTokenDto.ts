@@ -3,7 +3,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 import { AbstractDto } from '../../../common/dto/AbstractDto';
-import {AuthEntity} from "../auth.entity";
+import { AuthEntity } from '../auth.entity';
 
 export class AuthDto extends AbstractDto {
     @ApiProperty()

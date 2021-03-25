@@ -2,12 +2,12 @@ import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { compare } from 'bcrypt';
 
 import { PageMetaDto } from '../../common/dto/PageMetaDto';
+import { RegisterRequestDto } from '../auth/dto/RequestDto';
 import { UserRepository } from '../user/user.repository';
 import { UserDto } from './dto/UserDto';
 import { UsersPageDto } from './dto/UsersPageDto';
 import { UsersPageOptionsDto } from './dto/UsersPageOptionsDto';
 import { UserEntity } from './user.entity';
-import { RegisterRequestDto } from "../auth/dto/RequestDto";
 
 @Injectable()
 export class UserService {
@@ -33,7 +33,7 @@ export class UserService {
             request.username,
         );
 
-        if ( existingFromUsername ) {
+        if (existingFromUsername) {
             throw new UnprocessableEntityException('Username already in use');
         }
 
@@ -50,10 +50,10 @@ export class UserService {
 
     async getUsers(pageOptionsDto: UsersPageOptionsDto): Promise<UsersPageDto> {
         const queryBuilder = this.users.createQueryBuilder('user');
-        const [users, usersCount] = await queryBuilder
+        const [users, usersCount] = (await queryBuilder
             .skip(pageOptionsDto.skip)
             .take(pageOptionsDto.take)
-            .getManyAndCount() as [UserEntity[], number];
+            .getManyAndCount()) as [UserEntity[], number];
 
         const pageMetaDto = new PageMetaDto({
             pageOptionsDto,

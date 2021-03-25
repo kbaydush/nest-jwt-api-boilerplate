@@ -16,7 +16,7 @@ export class UserRepository extends Repository<UserEntity> {
     public async findForUsername(username: string): Promise<UserEntity | null> {
         return this.findOne({
             where: {
-                username: username
+                username,
             },
         }) as Promise<UserEntity>;
     }
